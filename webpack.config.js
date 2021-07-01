@@ -85,6 +85,12 @@ function generateWebpackConfigForCanister(name, info) {
         process: require.resolve('process/browser'),
       }),
     ],
+    module: {
+      rules: [{
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      }]
+    }
   };
 }
 
