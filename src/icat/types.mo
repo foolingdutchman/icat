@@ -17,6 +17,8 @@ module {
     last_feed: Nat;
     last_play: Nat;
     imgUrl: Text;
+    fighting: Nat;
+    pregnancy: Nat;
   };
 
   public type Profile = {
@@ -34,6 +36,8 @@ module {
     last_feed: Nat;
     last_play: Nat;
     imgUrl: Text;
+    fighting: Nat;
+    pregnancy: Nat;
   };
 
 };

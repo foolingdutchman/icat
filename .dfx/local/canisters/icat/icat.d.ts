@@ -5,6 +5,7 @@ export interface Profile_2 {
   'imgUrl' : string,
   'music' : bigint,
   'thirsty' : bigint,
+  'fighting' : bigint,
   'hungry' : bigint,
   'birthdate' : bigint,
   'food' : bigint,
@@ -15,6 +16,7 @@ export interface Profile_2 {
   'last_feed' : bigint,
   'last_play' : bigint,
   'water' : bigint,
+  'pregnancy' : bigint,
 };
 export interface Token {
   'airDrop' : (arg_0: string, arg_1: bigint) => Promise<boolean>,
@@ -23,7 +25,9 @@ export interface Token {
   'balanceOf' : (arg_0: Principal) => Promise<bigint>,
   'balanceOfFromtr' : (arg_0: string) => Promise<bigint>,
   'burn' : (arg_0: Principal, arg_1: bigint) => Promise<boolean>,
-  'createNewCat' : (arg_0: UserId_2, arg_1: bigint) => Promise<Profile>,
+  'createNewCat' : (arg_0: UserId_2, arg_1: bigint, arg_2: bigint) => Promise<
+      Profile
+    >,
   'decimals' : () => Promise<bigint>,
   'getAirdropLastRecord' : (arg_0: Principal) => Promise<[] | [bigint]>,
   'getICatInfo' : (arg_0: UserId_2) => Promise<[] | [Profile]>,

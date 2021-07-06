@@ -8,7 +8,7 @@ type Token =
    balanceOf: (principal) -> (nat) query;
    balanceOfFromtr: (text) -> (nat) query;
    burn: (principal, nat) -> (bool);
-   createNewCat: (UserId_2, nat) -> (Profile);
+   createNewCat: (UserId_2, nat, nat) -> (Profile);
    decimals: () -> (nat) query;
    getAirdropLastRecord: (principal) -> (opt nat);
    getICatInfo: (UserId_2) -> (opt Profile);
@@ -31,6 +31,7 @@ type Token =
 type Profile_2 = 
  record {
    birthdate: nat;
+   fighting: nat;
    food: nat;
    gender: nat;
    happyness: nat;
@@ -42,6 +43,7 @@ type Profile_2 =
    last_play: nat;
    music: nat;
    name: text;
+   pregnancy: nat;
    thirsty: nat;
    water: nat;
  };

@@ -6,6 +6,7 @@ export default ({ IDL }) => {
     'imgUrl' : IDL.Text,
     'music' : IDL.Nat,
     'thirsty' : IDL.Nat,
+    'fighting' : IDL.Nat,
     'hungry' : IDL.Nat,
     'birthdate' : IDL.Nat,
     'food' : IDL.Nat,
@@ -16,6 +17,7 @@ export default ({ IDL }) => {
     'last_feed' : IDL.Nat,
     'last_play' : IDL.Nat,
     'water' : IDL.Nat,
+    'pregnancy' : IDL.Nat,
   });
   const Profile = Profile_2;
   const Token = IDL.Service({
@@ -29,7 +31,7 @@ export default ({ IDL }) => {
     'balanceOf' : IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
     'balanceOfFromtr' : IDL.Func([IDL.Text], [IDL.Nat], ['query']),
     'burn' : IDL.Func([IDL.Principal, IDL.Nat], [IDL.Bool], []),
-    'createNewCat' : IDL.Func([UserId_2, IDL.Nat], [Profile], []),
+    'createNewCat' : IDL.Func([UserId_2, IDL.Nat, IDL.Nat], [Profile], []),
     'decimals' : IDL.Func([], [IDL.Nat], ['query']),
     'getAirdropLastRecord' : IDL.Func([IDL.Principal], [IDL.Opt(IDL.Nat)], []),
     'getICatInfo' : IDL.Func([UserId_2], [IDL.Opt(Profile)], []),

@@ -358,11 +358,18 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
     // icat functions
 
 
-    public func createNewCat(userId: UserId, timeStamp: Nat): async Profile{
+    public func createNewCat(userId: UserId, timeStamp: Nat,new_gender : Nat): async Profile{
+        var new_fighting =0;
+        var new_pregnancy = 0;
+        if(new_gender == 0){
+            new_pregnancy := 1;
+        }else{           
+            new_fighting :=1;
+        };
         let  profile :Profile ={
                 id =userId;
-                name = "icat";
-                gender = 0;
+                name = "";
+                gender = new_gender;
                 birthdate = timeStamp;
                 hungry = 100;
                 thirsty = 100;
@@ -374,10 +381,13 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
                 last_drink=timeStamp;
                 last_feed=timeStamp;
                 last_play=timeStamp;
+                fighting= new_fighting;
+                pregnancy=new_pregnancy;
         };
         directory.updateOne(userId,profile);
         return profile;
     };
+
 
     public func getICatInfo(userId : UserId) : async ? Profile {
         directory.findOne(userId)

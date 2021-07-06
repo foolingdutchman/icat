@@ -29,15 +29,15 @@ $(function () {
 
   // loading always in center of screen
   //页面初始化
-  goCenter();
+  goCenter($("#loading"));
 
   //滚动条滚动
   $(window).scroll(function () {
-    goCenter();
+    goCenter($("#loading"));
   });
   //拖动浏览器窗口
   $(window).resize(function () {
-    goCenter();
+    goCenter($("#loading"));
   });
 
   // typed text anim
@@ -55,14 +55,16 @@ $(function () {
   });
 
   new Typed("#intro",{
-    cursorChar: "_",
+    cursorChar: "|",
     strings: [
-      "&nbsp;This is a tiny pet game,\t",
-      "&nbsp;You will get a cute ICat, \t",
-      "&nbsp;You need to take care of your Icat.\t",
+      "&nbsp;This is a tiny pet game,\n ",
+      "&nbsp;You must to use ICP principal ID to register the game,\n",
+      "&nbsp;Otherwise you will meet problem for playing.\t",
+      "&nbsp;You will get a cute ICat, \n",
+      "&nbsp;You need to take care of your Icat.\n",
       "&nbsp;You need to feed water ,food and entertain your pet.\t",
-      "&nbsp;Food ,water and music is not free, you need to buy this item by use ShitCoin.\t",
-      "&nbsp;Shit Coin is a token used for payment here,\t",
+      "&nbsp;Food ,water and music is not free, you need to buy this item by use ShitCoin.\n",
+      "&nbsp;Shit Coin is a token used for payment here,\n",
       "&nbsp;You can get 100 ShitCoin per Day for free.\t",
       "&nbsp;That is all for the game, enjoy it!\t",
     ],
@@ -140,11 +142,12 @@ $(function () {
     }
   });
   $("#coin").click(async function () {
+    showLoading(true);
     var last_drop = await icat.getAirdropLastRecord(principal_);
     if (last_drop == null) {
-      alert(" have no record !");
-    } else {
-      showLoading(true);
+      showLoading(false);
+      alert(" have no record !");     
+    } else {    
       var gap = getCurrentTimeStamp() - parseInt(last_drop);
       if (gap > 3600 * 1000 * 24) {
         var firstReward =await icat.airDrop(principal, 200);
@@ -204,18 +207,38 @@ $(function () {
     buyMusic();
   });
 
+  $("#edit-name").click(function(){
+    show_Edit_pannel(true);
+  });
+
+  $("#edit-name-confirm").click(function(){
+    editName();
+  });
+
+  $("#edit-name-cancel").click(function(){
+    show_Edit_pannel(false);
+  });
+
 
 
   // functions
 
-  function goCenter() {
+  function isEmpty(obj){
+    if(typeof obj == "undefined" || obj == null || obj == ""){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+
+  function goCenter(element) {
     var h = $(window).height();
     var w = $(window).width();
     var st = $(window).scrollTop();
     var sl = $(window).scrollLeft();
-
-    $("#loading").css("top", (h - 60) / 2 + st);
-    $("#loading").css("left", (w - 80) / 2 + sl);
+    element.css("top", (h) / 2 + st);
+    element.css("left", (w) / 2 + sl);
   }
 
   function showLoading(is_shown) {
@@ -235,7 +258,8 @@ $(function () {
 
   async function create_icat(principal_str) {
     const timestamp = Date.parse(new Date());
-    var data = await icat.createNewCat(principal_, timestamp);
+    const gender =Math.round(Math.random()); 
+    var data = await icat.createNewCat(principal_, timestamp ,gender);
     if (data == null) {
       alert("icat create fail!");
       showLoading(false);
@@ -427,6 +451,20 @@ $(function () {
     
   }
 
+  async function editName(){
+  var name = $("#input-name").val().toString();
+  if(isEmpty(name)){
+   alert("please input Icat name!");
+  }else{
+    showLoading(true);
+    data.name =name;
+    await icat.updateProfile(data);
+    load_cate_info(data);
+    show_Edit_pannel(false);
+    showLoading(false);
+  }
+  }
+
   async function get_icat(principal) {
     principal_ = await icat.getPrincipal(principal);
     var list = await icat.getICatInfo(principal_);
@@ -482,8 +520,24 @@ $(function () {
     }
   }
 
+  function show_Edit_pannel(is_shown){
+    if(is_shown){
+      goCenter($("#edit-pannel"));
+
+      $("#edit-pannel").show();
+     
+    }else{
+      $("#edit-pannel").hide();
+    }   
+  }
+
   function load_cate_info(data) {
     $("#cat-birth").text(timeStamp2Time(data.birthdate) + "");
+    if(isEmpty(data.name+"")){
+      $("#edit-name").show();
+    }else{
+      $("#edit-name").hide();
+    }
     $("#cat-name").text(data.name + "");
     $("#cat-gender").text(data.gender == 0 ? "Female" : "Male");
     $("#hungry").text(data.hungry + "");
@@ -590,21 +644,21 @@ $(function () {
     $("#shop").attr("src", "shop-water.gif");
     setTimeout(function () {
       $("#shop").attr("src", "shop.png");
-    }, 1400);
+    }, 3000);
   }
 
   function buyFoodAnim() {
     $("#shop").attr("src", "shop-food.gif");
     setTimeout(function () {
       $("#shop").attr("src", "shop.png");
-    }, 1400);
+    }, 3000);
   }
 
   function buyMusicAnim() {
     $("#shop").attr("src", "shop-music.gif");
     setTimeout(function () {
       $("#shop").attr("src", "shop.png");
-    }, 1400);
+    }, 3000);
   }
 
   async function getBalance() {

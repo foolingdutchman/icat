@@ -61,7 +61,9 @@ module {
         last_drink=profile.last_drink;
         last_feed=profile.last_feed;
         last_play=profile.last_play;
-         imgUrl = profile.imgUrl;
+        imgUrl = profile.imgUrl;
+        fighting= profile.fighting;
+        pregnancy= profile.pregnancy;
       }
     };
 

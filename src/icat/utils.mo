@@ -29,6 +29,8 @@ module {
           last_drink=0;
           last_play=0;
           last_feed=0;
+          fighting=0;
+          pregnancy=0;
         }
       };
     };

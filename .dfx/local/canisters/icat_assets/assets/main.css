@@ -140,6 +140,17 @@ span {
   font-size: 18px;
 }
 
+#edit-pannel{
+  padding: 20px;
+  width: fit-content;
+  height: fit-content;
+  border-radius: 10px;
+  border: 3px solid whitesmoke;
+  background-color: #f8f9fc;
+  font-size: 18px;
+  position: absolute;
+}
+
 .sub-tab {
   cursor: pointer;
   padding: 2px;
@@ -151,6 +162,13 @@ span {
   height: auto;
   align-self: center;
   margin: 10px auto;
+}
+.img-button {
+  cursor: pointer;
+}
+.img-button:hover{
+  height: 110%;
+  width: 110%;
 }
 
 .sub-tab:hover{
@@ -245,6 +263,10 @@ span {
 }
 #typed {
   font-size: small;
+  color: #e60073;
+}
+#intro{
+  font-size: medium;
   color: #e60073;
 }
 

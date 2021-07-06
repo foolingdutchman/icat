@@ -8,14 +8,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <!--Responsive layout：响应式布局-->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>my_token</title>
+    <title>Icat</title>
     <base href="/">
     <link rel="shortcut icon" href="favicon.ico">
     <link type="text/css" rel="stylesheet" href="main.css" />
 </head>
 
 <body>
-
 
     <div class="nav">
         <img id="logo" class="common-image" src="cat-1.gif">
@@ -82,7 +81,7 @@
 
         <div id="reward-area" class="common-area">
             <section> <span>&nbsp;</span></section>
-            <section> <span>Claim your daily Shitcoin!</span></section>
+            <img id="coin-banner" class="common-image" src="coin-banner.gif"></img>
             <img id="coin" class="common-image" src="coin.gif"></img>
             <div class="typed-area">
                 <section> <span id="typed"></span> </section>
@@ -91,7 +90,8 @@
         </div>
 
         <div id="cat-area" class="common-area">
-            <img id="cat-banner" class="common-image" src="cat-banner.png"></img>
+            <section> <span>&nbsp;</span></section>
+            <img id="cat-banner" class="common-image" src="cat-banner.gif"></img>
             <div id="cat-info-area " class="">
                 <div class="horizon-div">
                     <span class="big-label">Birth Date</span>
@@ -101,7 +101,12 @@
                 </div>
                 <div class="horizon-div">
                     <span id="cat-birth" class="label-tab"></span>
-                    <span id="cat-name" class="label-tab"></span>
+                    <div class="label-tab">
+                        <span id="cat-name"></span>
+                        <img id="edit-name" class="icon img-button" src="edit-30.png" style="display: none;"/>
+                        <img>
+                    </div>
+                    
                     <span id="cat-gender" class="label-tab"></span>
 
                 </div>
@@ -119,7 +124,7 @@
                     <span id="happyness" class="cat-label-tab"></span>
                 </div>
 
-                <img id="cat" class=" common-image" src="cat-1.gif"></img>
+                <img id="cat" class=" common-image" src="cat-1.gif" ></img>
 
                 <div class="horizon-div">
                     <img id="water" class="common-image rotate" src="water.png"></img>
@@ -139,7 +144,7 @@
 
         <div id="shop-area" class="common-area">
             <section> <span>&nbsp;</span></section>
-            <section> <span>Buy Something for your ICat!</span></section>
+            <img id="shop-banner" class="common-image" src="shop-banner.gif"></img>
             <img id="shop" class=" common-image" src="shop.png"></img>
             <div class="horizon-div">
                 <div class="horizon-div-fit"><span class="label-tab">10</span><img class="icon" src="coin-small.png" />
@@ -168,6 +173,20 @@
 
     </div>
 
+    <div id="edit-pannel" style="display: none;">
+        <section>
+            <label for="input-name">Input Icat name: &nbsp;</label>
+            <input id="input-name"  type="text" />
+        </section>
+        <section><span>Hint: You can only name your Icat once!</span></section>
+        <section>        
+            <div id="edit-name-confirm" class="tab">Confirm</div>
+        </section>
+        <section>        
+            <div id="edit-name-cancel" class="tab">Cancel</div>
+        </section>
+    </div>
+
     <div id="loading" style="display: none;">
 
         <div class="spinner">
@@ -191,6 +210,8 @@
             </div>
         </div>
     </div>
+
+    
 </body>
 
 </html>
