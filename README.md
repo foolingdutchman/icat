@@ -37,6 +37,8 @@ cd icat/
 
 dfx start
 
+```
+
 terminal 2:
 
 ```shell
