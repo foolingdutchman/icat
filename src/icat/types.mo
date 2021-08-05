@@ -40,6 +40,27 @@ module {
     pregnancy: Nat;
   };
 
+  public type Player = {
+   id: UserId ;
+   water: Nat;
+   food: Nat;
+   music: Nat;
+  };
+
+  public type CatInfo ={
+    name: Text;
+    gender: Nat;
+    birthdate: Nat;
+    hungry: Nat;
+    thirsty: Nat;
+    happyness:Nat;
+    last_drink: Nat;
+    last_feed: Nat;
+    last_play: Nat;
+    fighting: Nat;
+    pregnancy: Nat;
+  };
+
 };
 
 

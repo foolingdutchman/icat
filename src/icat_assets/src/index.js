@@ -7,16 +7,15 @@ import {
 import $ from "jquery";
 import { WOW } from "wowjs";
 import Typed from "typed.js";
+import {StoicIdentity} from "ic-stoic-identity";
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "animate.css/animate.min.css";
 import { Alert } from "bootstrap";
+import { iCatsInfoTempl } from "./templs";
 
-const agent = new HttpAgent();
-const icat = Actor.createActor(icat_idl, {
-  agent,
-  canisterId: icat_id,
-});
+
+const icat ;
 var principal = "";
 var principal_ =null;
 var data = {};
@@ -75,7 +74,7 @@ $(function () {
 
   });
 
-  // set backgroun for the cat area
+  // set background for the cat area
   setCatAreaBackground();
 
   // click events listening
@@ -94,53 +93,50 @@ $(function () {
   });
 
   $("#log-in").click(async function () {
-    var temp_id = $("#wallet_id").val().toString();
-    var temp_password = $("#password").val().toString();
     showLoading(true);
-    var success = await icat.logIn(temp_id, temp_password);
-    if (success) {
-      principal = temp_id;
-      alert("Log In success!");
+    StoicIdentity.load().then(async identity => {
+      if (identity !== false) {
+        //ID is a already connected wallet!
+        showLoading(false);
+        alert("Log In falied!");
+      } else {
+        //No existing connection, lets make one!
+        identity = await StoicIdentity.connect();
+        showLoading(false);
+      }
+      
+      //Lets display the connected principal!
+      console.log(identity.getPrincipal().toText());
+      principal_ =identity.getPrincipal();
+      principal =principal_.toText();
+      //Create an actor canister
+      icat = Actor.createActor(icat_idl, {
+        agent: new HttpAgent({
+          identity,
+        }),
+        canisterId: icat_id,
+      });
+      var playerInfo= await icat.checkState();
+      console.log(playerInfo);
       show_login_area(false);
       show_balance(principal);
-      get_icat(principal);
-    } else {
-      showLoading(false);
-      alert("Log In falied!");
-    }
+      var hasCat = await icat.checkUserHasCat(principal_);
+      if(hasCat){
+
+      }else{        
+        getArrayFromSrc("demo-cat.svg",createCatNft);
+      }
+      //Disconnect after
+      // StoicIdentity.disconnect();
+    });
+
   });
 
-  $("#register").click(async function () {
-    var temp_id = $("#wallet_id").val().toString();
-    var temp_password = $("#password").val().toString();
-    showLoading(true);
-    var success = await icat.registerUser(temp_id, temp_password);
-    if (success) {
-      principal = temp_id;
-      alert("Register and Log In success!");
-      principal_ = await icat.getPrincipal(principal);
-      var firstReward =await icat.airDrop(principal, 200);
-      if (firstReward) {
-        var recordReward =await icat.updateAirDropRecord(
-          principal_,
-          getCurrentTimeStamp()
-        );
-        if (recordReward) {
-          alert("You have get your first airdrop!");
-        } else {
-          alert("Register airdrop record failed! ");
-        }
-      } else {
-        alert("First airdrop record failed! ");
-      }
-      show_login_area(false);
-      show_balance(principal);
-      create_icat(principal);
-    } else {
-      showLoading(false);
-      alert("Register falied, User has existed!");
-    }
-  });
+  function createCatNft(array){
+    var catInfo = await icat.createCatInfo(principal_,getCurrentTimeStamp());
+    var catNft = await icat.mintNft(array,catInfo);
+  }
+
   $("#coin").click(async function () {
     showLoading(true);
     var last_drop = await icat.getAirdropLastRecord(principal_);
@@ -219,6 +215,12 @@ $(function () {
     show_Edit_pannel(false);
   });
 
+  $("#test").click(function(){
+    $("main-area").html(iCatsInfoTempl(data)).show();
+  });
+
+
+
 
 
   // functions
@@ -248,6 +250,16 @@ $(function () {
       $("#loading").hide();
     }
   }
+
+  function showElement(element,isShow){
+    if (isShow) {
+      element.show();
+    } else {
+      element.hide();
+    }
+  }
+
+
 
   function setCatAreaBackground() {
     $("#cat-area-inner")
@@ -674,4 +686,30 @@ $(function () {
     const timestamp = Date.parse(new Date());
     return timestamp;
   }
+
+
+  function loadCatData(data){
+
+  }
+
+  function getArrayFromSrc(src, resolve){
+
+    var oReq = new XMLHttpRequest();
+    oReq.open("GET", src, true);
+     oReq.responseType = "arraybuffer";
+
+     oReq.onload  = function (oEvent) {
+       var arrayBuffer = oReq.response; // Note: not oReq.responseText
+        if (arrayBuffer) {
+    var byteArray = new Uint8Array(arrayBuffer);
+    resolve(byteArray);
+    for (var i = 0; i < byteArray.byteLength; i++) {
+      // do something with each byte in the array
+       }
+      }
+    };
+
+    oReq.send(null);
+  }
+
 });

@@ -1,9 +1,15 @@
 import HashMap "mo:base/HashMap";
 import Principal "mo:base/Principal";
 import Debug "mo:base/Debug";
+import Hash "mo:base/Hash";
+import Nat "mo:base/Nat";
 import Database "./database";
 import Types "./types";
 import Utils "./utils";
+import Random "mo:base/Random";
+import Result "mo:base/Result";
+import Nft "nft";
+
 
 actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat, _owner: Principal) {
     private stable var owner_ : Principal = _owner;
@@ -16,13 +22,20 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
     private var allowances = HashMap.HashMap<Principal, HashMap.HashMap<Principal, Nat>>(1, Principal.equal, Principal.hash);
     private var players = HashMap.HashMap<Principal,Text>(1,Principal.equal,Principal.hash);
     private var airDropList = HashMap.HashMap<Principal,Nat>(1,Principal.equal,Principal.hash);
-
     balances.put(owner_, totalSupply_);
     
     var directory: Database.Directory = Database.Directory();
     type NewProfile = Types.NewProfile;
     type Profile = Types.Profile;
     type UserId = Types.UserId;
+    type CatInfo =Types.CatInfo;
+    type Player = Types.Player;
+
+    var nftDataMap : HashMap.HashMap<Principal, Nft.Nft> = HashMap.HashMap<Principal, Nft.Nft>(0, Principal.equal, Principal.hash);
+    var creatorMap :HashMap.HashMap<Principal,HashMap.HashMap<Nat,Principal>> =HashMap.HashMap<Principal,HashMap.HashMap<Nat,Principal>> (0,Principal.equal,Principal.hash);
+    var nftMap : HashMap.HashMap<Nat,Principal> = HashMap.HashMap<Nat, Principal>(0, Nat.equal, Hash.hash);
+
+    var idCounter : Nat = 0;
 
     /// Transfers value amount of tokens to Principal to.
     public shared(msg) func transfer(to: Principal, value: Nat) : async Bool {
@@ -207,7 +220,7 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
         return "Hello, " # name # "!";
     };
 
-    /// ***rewrite functions for transactions from frontend***
+    
     
 
     /// get Principal from Principal ID text
@@ -216,18 +229,7 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
         return principal_;
     };
     
-    /// get balance for principal ID
-    public query func balanceOfFromtr(idstr : Text) : async Nat {
-        let who : Principal =  Principal.fromText(idstr);       
-        switch (balances.get(who)) {
-            case (?balance) {
-                return balance;
-            };
-            case (_) {
-                return 0;
-            };
-        }
-    };
+   
 
     /// register for player
     public func registerUser(principal_str : Text ,password : Text) : async Bool{
@@ -396,7 +398,146 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
     public func updateProfile(profile : Profile) : async Bool {
         directory.updateOne(profile.id, profile);
         return true;
-    }   
+    };
+
+
+    public shared(msg) func checkState() :async Player{
+        Debug.print (Principal.toText(msg.caller)); 
+        switch(directory.findPlayer(msg.caller)){
+            case(?p){
+                return p;
+            };
+            case(None){
+                let np= directory.createPlayer(msg.caller);
+                let map =  HashMap.HashMap< Nat,Principal>(0, Nat.equal, Hash.hash);
+                creatorMap.put(msg.caller, map);
+                return np;
+            };
+        }
+    };
+
+    public func createCatInfo( owner : Principal,timeStamp: Nat) : async CatInfo{
+      
+        let new_gender = 0;     
+        var new_fighting =0;
+        var new_pregnancy = 0;
+        if(new_gender == 0){
+            new_pregnancy := 1;
+        }else{           
+            new_fighting :=1;
+        };
+        let  info :CatInfo ={
+                name = "";
+                gender = new_gender;
+                birthdate = timeStamp;
+                hungry = 100;
+                thirsty = 100;
+                happyness = 0;
+                last_drink=timeStamp;
+                last_feed=timeStamp;
+                last_play=timeStamp;
+                fighting= new_fighting;
+                pregnancy=new_pregnancy;
+        };
+        return info;
+    };
+
+
+    public func checkUserHasCat(owner : Principal) : async Bool {
+        switch(creatorMap.get(owner)){
+            case(?v){
+                return v.size() > 0;
+            };
+            case(None){
+                return false;
+            };
+        }
+    }; 
+
+    // NFT part
+
+   
+
+    public shared(msg) func requestId() : async Result.Result<Nat, Text> {
+        switch(creatorMap.get(msg.caller)) {
+            case (?v) {
+                idCounter := idCounter + 1;
+                return #ok(idCounter);
+            };
+            case (None) {
+                return #err("Invalid Request");
+            }
+        }
+    };
+
+
+    public shared query func getNftAddress(id : Nat) : async ?Principal {
+        return nftMap.get(id);
+    };
+
+    public shared query func getNft(principal :Principal) : async ?Nft.Nft {
+        return nftDataMap.get(principal);
+    };
+
+    public shared query func getNftById( id : Nat) : async Result.Result<Nft.Nft, Text> {
+        switch(nftMap.get(id)){
+            case(?principal){
+                switch(nftDataMap.get(principal)){
+                    case(?nft){
+                       return #ok(nft);
+                    };
+                    case(None){
+                        return #err("EMPTY NFT!");
+                    };
+                }
+            };
+            case(None){
+                return #err("Invalid Id!");
+            };
+        }
+
+    };
+
+
+    public shared(msg) func spawnCreator() : async Text {
+    
+        switch(creatorMap.get(msg.caller)) {
+            case (?v) {
+                return Principal.toText(msg.caller);
+            };
+            case (None) {
+               let map =  HashMap.HashMap<Nat,Principal>(0, Nat.equal, Hash.hash);
+                creatorMap.put(msg.caller, map);
+                return Principal.toText(msg.caller);
+            };
+        };
+
+        return "Ok";
+    };
+
+    
+
+    public shared(msg) func mintNft(data : [Nat8], catInfo :CatInfo ) : async Result.Result<Principal, Text> {
+         
+         switch(creatorMap.get(msg.caller)){
+             case(?map){
+                 idCounter := idCounter + 1;
+                 let minted = await Nft.Nft(msg.caller, idCounter, data, catInfo);
+                 // put nft data in to map
+                 nftDataMap.put(Principal.fromActor(minted),minted);
+                 // link nft principal to id
+                 nftMap.put(idCounter,Principal.fromActor(minted));
+                 map.put(idCounter,Principal.fromActor(minted));
+                 creatorMap.put(msg.caller,map);
+                 return #ok(Principal.fromActor(minted));
+             };
+
+             case(None){
+                 return #err("Not Authorized");
+             };
+         }
+    };
+   
 
 };
 
