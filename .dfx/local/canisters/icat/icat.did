@@ -30,6 +30,7 @@ type Token =
    requestId: () -> (Result);
    spawnCreator: () -> (text);
    symbol: () -> (text) query;
+   testCall: () -> (text);
    totalSupply: () -> (nat) query;
    transfer: (principal, nat) -> (bool);
    transferFrom: (principal, principal, nat) -> (bool);

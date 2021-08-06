@@ -454,6 +454,11 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
         }
     }; 
 
+    public shared(msg) func testCall() :async  Text {
+         Principal.toText(msg.caller)
+
+    };
+
     // NFT part
 
    
@@ -537,6 +542,8 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
              };
          }
     };
+
+
    
 
 };

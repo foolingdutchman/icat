@@ -15,7 +15,7 @@ import { Alert } from "bootstrap";
 import { iCatsInfoTempl } from "./templs";
 
 
-const icat ;
+var icat =null;
 var principal = "";
 var principal_ =null;
 var data = {};
@@ -92,6 +92,35 @@ $(function () {
     log_out();
   });
 
+  $("register").click( async function(){
+    StoicIdentity.load().then(async identity => {
+      if (identity !== false) {
+        //ID is a already connected wallet!  
+        alert("Log In falied!");
+      } else {
+        //No existing connection, lets make one!
+        identity = await StoicIdentity.connect();
+      }
+      
+      //Lets display the connected principal!
+      console.log(identity.getPrincipal().toText());
+    
+      //Create an actor canister
+     
+      const actor = Actor.createActor(icat_idl, {
+        agent: new HttpAgent({
+          identity,
+        }),
+        canisterId: icat_id,
+      });
+      var rep = actor.testCall();
+      
+      console.log(rep+"");
+      //Disconnect after
+       StoicIdentity.disconnect();
+    });
+  });
+
   $("#log-in").click(async function () {
     showLoading(true);
     StoicIdentity.load().then(async identity => {
@@ -132,7 +161,7 @@ $(function () {
 
   });
 
-  function createCatNft(array){
+  async function createCatNft(array){
     var catInfo = await icat.createCatInfo(principal_,getCurrentTimeStamp());
     var catNft = await icat.mintNft(array,catInfo);
   }

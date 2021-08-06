@@ -86,6 +86,7 @@ export default ({ IDL }) => {
     'requestId' : IDL.Func([], [Result], []),
     'spawnCreator' : IDL.Func([], [IDL.Text], []),
     'symbol' : IDL.Func([], [IDL.Text], ['query']),
+    'testCall' : IDL.Func([], [IDL.Text], []),
     'totalSupply' : IDL.Func([], [IDL.Nat], ['query']),
     'transfer' : IDL.Func([IDL.Principal, IDL.Nat], [IDL.Bool], []),
     'transferFrom' : IDL.Func(
