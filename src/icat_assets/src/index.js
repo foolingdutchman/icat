@@ -13,7 +13,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "animate.css/animate.min.css";
 import { Alert } from "bootstrap";
 import { iCatsInfoTempl } from "./templs";
-
+import { Principal } from "@dfinity/agent";
 
 var icat =null;
 var principal = "";
@@ -25,6 +25,8 @@ window.$ = window.jQuery = $;
 
 $(function () {
   // initial view
+
+
 
   // loading always in center of screen
   //页面初始化
@@ -92,7 +94,7 @@ $(function () {
     log_out();
   });
 
-  $("register").click( async function(){
+  $("#register").click( async function(){
     StoicIdentity.load().then(async identity => {
       if (identity !== false) {
         //ID is a already connected wallet!  
@@ -104,20 +106,17 @@ $(function () {
       
       //Lets display the connected principal!
       console.log(identity.getPrincipal().toText());
-    
       //Create an actor canister
-     
-      const actor = Actor.createActor(icat_idl, {
-        agent: new HttpAgent({
-          identity,
-        }),
-        canisterId: icat_id,
-      });
-      var rep = actor.testCall();
       
-      console.log(rep+"");
+     const actor = Actor.createActor(icat_idl, {
+                  agent : new HttpAgent({ identity}),
+                  canisterId :icat_id, });
+
+      var rep =await actor.testCall();
+      
+      console.log("this is call from caller :"+rep+"");
       //Disconnect after
-       StoicIdentity.disconnect();
+      // StoicIdentity.disconnect();
     });
   });
 
