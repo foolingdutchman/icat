@@ -6,8 +6,6 @@ You can feed water and food or play with your pet, the supplies need to be bough
 
 ShitCoin is a simple token. decimals is 3, totalSupply is 10_000_000, as 10_000 Token.
 
-
-
 To learn more before you start working with icat, see the following documentation available online:
 
 - [Quick Start](https://sdk.dfinity.org/docs/quickstart/quickstart-intro.html)
@@ -17,10 +15,7 @@ To learn more before you start working with icat, see the following documentatio
 
 If you want to start working on your project right away, you might want to try the following commands:
 
-
-
 # icat
-
 
 ## steps
 
@@ -32,7 +27,7 @@ dfx config --help
 
 terminal 1:
 
-```shell
+````shell
 cd icat/
 
 dfx start
@@ -51,7 +46,7 @@ echo $DEFAULT_ID
 
 eval dfx canister install icat --argument="'(\"Shit Coin\", \"Token\", 3, 10000000, $DEFAULT_ID)'"
 
-dfx canister call icat totalSupply 
+dfx canister call icat totalSupply
 
 dfx canister call icat balanceOf "($DEFAULT_ID)"
 
@@ -64,9 +59,35 @@ dfx canister call icat balanceOf "($XIAOMING)"
 
 dfx canister call icat transfer "($XIAOMING, 100)"
 
-```
+````
 
 ## reference
+
 1. MOTOKO_TOKEN: https://github.com/flyq/motoko_token
 
-2. Linkedup:     https://github.com/dfinity/linkedup
+2. Linkedup: https://github.com/dfinity/linkedup
+
+## Deploy on icp network
+
+1. Medium: https://medium.com/dfinity/how-to-deploy-your-first-canister-using-the-nns-dapp-c8b75e01a05b
+
+````shell
+
+```shell
+dfx canister --network=ic --no-wallet create --all
+
+
+dfx build --network=ic
+
+
+echo $DEFAULT_ID
+
+eval dfx canister --network=ic --no-wallet install icat --argument="'(\"Shit Coin\", \"Token\", 3, 1000000000000, $DEFAULT_ID)'"
+
+dfx canister --network=ic call icat totalSupply
+
+
+dfx canister --network=ic --no-wallet install icat_assets
+
+ 
+```

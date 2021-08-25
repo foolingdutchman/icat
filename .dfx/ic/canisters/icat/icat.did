@@ -1,0 +1,51 @@
+type UserId_2 = UserId;
+type UserId = principal;
+type Token = 
+ service {
+   airDrop: (text, nat) -> (bool);
+   allowance: (principal, principal) -> (nat) query;
+   approve: (principal, nat) -> (bool);
+   balanceOf: (principal) -> (nat) query;
+   balanceOfFromtr: (text) -> (nat) query;
+   burn: (principal, nat) -> (bool);
+   createNewCat: (UserId_2, nat, nat) -> (Profile);
+   decimals: () -> (nat) query;
+   getAirdropLastRecord: (principal) -> (opt nat);
+   getICatInfo: (UserId_2) -> (opt Profile);
+   getPrincipal: (text) -> (principal);
+   greet: (text) -> (text);
+   logIn: (text, text) -> (bool);
+   mint: (principal, nat) -> (bool);
+   modifyPassWord: (text, text) -> (bool);
+   name: () -> (text) query;
+   owner: () -> (principal) query;
+   recoverChip: (text, nat) -> (bool);
+   registerUser: (text, text) -> (bool);
+   symbol: () -> (text) query;
+   totalSupply: () -> (nat) query;
+   transfer: (principal, nat) -> (bool);
+   transferFrom: (principal, principal, nat) -> (bool);
+   updateAirDropRecord: (principal, nat) -> (bool);
+   updateProfile: (Profile) -> (bool);
+ };
+type Profile_2 = 
+ record {
+   birthdate: nat;
+   fighting: nat;
+   food: nat;
+   gender: nat;
+   happyness: nat;
+   hungry: nat;
+   id: UserId;
+   imgUrl: text;
+   last_drink: nat;
+   last_feed: nat;
+   last_play: nat;
+   music: nat;
+   name: text;
+   pregnancy: nat;
+   thirsty: nat;
+   water: nat;
+ };
+type Profile = Profile_2;
+service : (text, text, nat, nat, principal) -> Token
