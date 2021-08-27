@@ -65,9 +65,16 @@ export default ({ IDL }) => {
     'burn' : IDL.Func([IDL.Principal, IDL.Nat], [IDL.Bool], []),
     'checkState' : IDL.Func([], [Player], []),
     'checkUserHasCat' : IDL.Func([IDL.Principal], [IDL.Bool], []),
-    'createCatInfo' : IDL.Func([IDL.Principal, IDL.Nat], [CatInfo], []),
+    'createCatInfo' : IDL.Func(
+        [IDL.Principal, IDL.Nat, IDL.Nat],
+        [CatInfo],
+        [],
+      ),
     'createNewCat' : IDL.Func([UserId_2, IDL.Nat, IDL.Nat], [Profile], []),
+    'createPlayer' : IDL.Func([], [Player], []),
+    'createPlayerFromFront' : IDL.Func([IDL.Principal], [Player], []),
     'decimals' : IDL.Func([], [IDL.Nat], ['query']),
+    'findPlayer' : IDL.Func([IDL.Principal], [IDL.Opt(Player)], []),
     'getAirdropLastRecord' : IDL.Func([IDL.Principal], [IDL.Opt(IDL.Nat)], []),
     'getICatInfo' : IDL.Func([UserId_2], [IDL.Opt(Profile)], []),
     'getNft' : IDL.Func([IDL.Principal], [IDL.Opt(Nft)], ['query']),
@@ -78,6 +85,11 @@ export default ({ IDL }) => {
     'logIn' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
     'mint' : IDL.Func([IDL.Principal, IDL.Nat], [IDL.Bool], []),
     'mintNft' : IDL.Func([IDL.Vec(IDL.Nat8), CatInfo], [Result_2], []),
+    'mintNftByFront' : IDL.Func(
+        [IDL.Vec(IDL.Nat8), CatInfo, IDL.Principal],
+        [Result_2],
+        [],
+      ),
     'modifyPassWord' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
     'name' : IDL.Func([], [IDL.Text], ['query']),
     'owner' : IDL.Func([], [IDL.Principal], ['query']),
@@ -95,6 +107,7 @@ export default ({ IDL }) => {
         [],
       ),
     'updateAirDropRecord' : IDL.Func([IDL.Principal, IDL.Nat], [IDL.Bool], []),
+    'updatePlayer' : IDL.Func([Player], [], ['oneway']),
     'updateProfile' : IDL.Func([Profile], [IDL.Bool], []),
   });
   return Token;

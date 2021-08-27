@@ -416,9 +416,29 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
         }
     };
 
-    public func createCatInfo( owner : Principal,timeStamp: Nat) : async CatInfo{
+    // player functions
+    public func createPlayerFromFront(principal : Principal) : async Player {
+        let player =directory.createPlayer(principal);
+        return player ;
+    };
+
+    public shared(msg) func createPlayer() : async Player {
+        let player =directory.createPlayer(msg.caller);
+        return player ;
+    };
+
+    public func updatePlayer(player : Player){
+        directory.updatePlayer(player.id, player);
+    };
+
+    public func findPlayer(id : Principal) : async ?Player {
+        return directory.findPlayer(id);
+    };
+
+
+    public func createCatInfo( owner : Principal,timeStamp: Nat,gender :Nat) : async CatInfo{
       
-        let new_gender = 0;     
+        let new_gender = gender;     
         var new_fighting =0;
         var new_pregnancy = 0;
         if(new_gender == 0){
@@ -439,6 +459,7 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
                 fighting= new_fighting;
                 pregnancy=new_pregnancy;
         };
+       
         return info;
     };
 
@@ -460,8 +481,6 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
     };
 
     // NFT part
-
-   
 
     public shared(msg) func requestId() : async Result.Result<Nat, Text> {
         switch(creatorMap.get(msg.caller)) {
@@ -542,7 +561,26 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
              };
          }
     };
+    public func mintNftByFront(data : [Nat8], catInfo :CatInfo , creator :Principal) : async Result.Result<Principal, Text> {
+         
+         switch(creatorMap.get(creator)){
+             case(?map){
+                 idCounter := idCounter + 1;
+                 let minted = await Nft.Nft(creator, idCounter, data, catInfo);
+                 // put nft data in to map
+                 nftDataMap.put(Principal.fromActor(minted),minted);
+                 // link nft principal to id
+                 nftMap.put(idCounter,Principal.fromActor(minted));
+                 map.put(idCounter,Principal.fromActor(minted));
+                 creatorMap.put(creator,map);
+                 return #ok(Principal.fromActor(minted));
+             };
 
+             case(None){
+                 return #err("Not Authorized");
+             };
+         }
+    };
 
    
 

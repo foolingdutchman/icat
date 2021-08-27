@@ -9,9 +9,12 @@ type Token =
    burn: (principal, nat) -> (bool);
    checkState: () -> (Player);
    checkUserHasCat: (principal) -> (bool);
-   createCatInfo: (principal, nat) -> (CatInfo);
+   createCatInfo: (principal, nat, nat) -> (CatInfo);
    createNewCat: (UserId_2, nat, nat) -> (Profile);
+   createPlayer: () -> (Player);
+   createPlayerFromFront: (principal) -> (Player);
    decimals: () -> (nat) query;
+   findPlayer: (principal) -> (opt Player);
    getAirdropLastRecord: (principal) -> (opt nat);
    getICatInfo: (UserId_2) -> (opt Profile);
    getNft: (principal) -> (opt Nft) query;
@@ -22,6 +25,7 @@ type Token =
    logIn: (text, text) -> (bool);
    mint: (principal, nat) -> (bool);
    mintNft: (vec nat8, CatInfo) -> (Result_2);
+   mintNftByFront: (vec nat8, CatInfo, principal) -> (Result_2);
    modifyPassWord: (text, text) -> (bool);
    name: () -> (text) query;
    owner: () -> (principal) query;
@@ -35,6 +39,7 @@ type Token =
    transfer: (principal, nat) -> (bool);
    transferFrom: (principal, principal, nat) -> (bool);
    updateAirDropRecord: (principal, nat) -> (bool);
+   updatePlayer: (Player) -> () oneway;
    updateProfile: (Profile) -> (bool);
  };
 type Result_3 = 

@@ -7,17 +7,18 @@ import {
 import $ from "jquery";
 import { WOW } from "wowjs";
 import Typed from "typed.js";
-import {StoicIdentity} from "ic-stoic-identity";
 import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "animate.css/animate.min.css";
 import { Alert } from "bootstrap";
-import { iCatsInfoTempl } from "./templs";
-import { Principal } from "@dfinity/agent";
 
-var icat =null;
+const agent = new HttpAgent();
+const icat = Actor.createActor(icat_idl, {
+  agent,
+  canisterId: icat_id,
+});
 var principal = "";
-var principal_ =null;
+var principal_ = null;
 var data = {};
 
 var is_cat_anim = false;
@@ -25,8 +26,6 @@ window.$ = window.jQuery = $;
 
 $(function () {
   // initial view
-
-
 
   // loading always in center of screen
   //页面初始化
@@ -55,7 +54,7 @@ $(function () {
     loop: true,
   });
 
-  new Typed("#intro",{
+  new Typed("#intro", {
     cursorChar: "|",
     strings: [
       "&nbsp;This is a tiny pet game,\n ",
@@ -73,10 +72,9 @@ $(function () {
     backSpeed: 25,
     backDelay: 3000,
     loop: true,
-
   });
 
-  // set background for the cat area
+  // set backgroun for the cat area
   setCatAreaBackground();
 
   // click events listening
@@ -94,89 +92,66 @@ $(function () {
     log_out();
   });
 
-  $("#register").click( async function(){
-    StoicIdentity.load().then(async identity => {
-      if (identity !== false) {
-        //ID is a already connected wallet!  
-        alert("Log In falied!");
-      } else {
-        //No existing connection, lets make one!
-        identity = await StoicIdentity.connect();
-      }
-      
-      //Lets display the connected principal!
-      console.log(identity.getPrincipal().toText());
-      //Create an actor canister
-      
-     const actor = Actor.createActor(icat_idl, {
-                  agent : new HttpAgent({ identity}),
-                  canisterId :icat_id, });
-
-      var rep =await actor.testCall();
-      
-      console.log("this is call from caller :"+rep+"");
-      //Disconnect after
-      // StoicIdentity.disconnect();
-    });
-  });
-
   $("#log-in").click(async function () {
+    var temp_id = $("#wallet_id").val().toString();
+    var temp_password = $("#password").val().toString();
     showLoading(true);
-    StoicIdentity.load().then(async identity => {
-      if (identity !== false) {
-        //ID is a already connected wallet!
-        showLoading(false);
-        alert("Log In falied!");
-      } else {
-        //No existing connection, lets make one!
-        identity = await StoicIdentity.connect();
-        showLoading(false);
-      }
-      
-      //Lets display the connected principal!
-      console.log(identity.getPrincipal().toText());
-      principal_ =identity.getPrincipal();
-      principal =principal_.toText();
-      //Create an actor canister
-      icat = Actor.createActor(icat_idl, {
-        agent: new HttpAgent({
-          identity,
-        }),
-        canisterId: icat_id,
-      });
-      var playerInfo= await icat.checkState();
-      console.log(playerInfo);
+    var success = await icat.logIn(temp_id, temp_password);
+    if (success) {
+      principal = temp_id;
+      alert("Log In success!");
       show_login_area(false);
       show_balance(principal);
-      var hasCat = await icat.checkUserHasCat(principal_);
-      if(hasCat){
-
-      }else{        
-        getArrayFromSrc("demo-cat.svg",createCatNft);
-      }
-      //Disconnect after
-      // StoicIdentity.disconnect();
-    });
-
+      get_icat(principal);
+    } else {
+      showLoading(false);
+      alert("Log In falied!");
+    }
   });
 
-  async function createCatNft(array){
-    var catInfo = await icat.createCatInfo(principal_,getCurrentTimeStamp());
-    var catNft = await icat.mintNft(array,catInfo);
-  }
-
+  $("#register").click(async function () {
+    var temp_id = $("#wallet_id").val().toString();
+    var temp_password = $("#password").val().toString();
+    showLoading(true);
+    var success = await icat.registerUser(temp_id, temp_password);
+    if (success) {
+      principal = temp_id;
+      alert("Register and Log In success!");
+      principal_ = await icat.getPrincipal(principal);
+      var firstReward = await icat.airDrop(principal, 200);
+      if (firstReward) {
+        var recordReward = await icat.updateAirDropRecord(
+          principal_,
+          getCurrentTimeStamp()
+        );
+        if (recordReward) {
+          alert("You have get your first airdrop!");
+        } else {
+          alert("Register airdrop record failed! ");
+        }
+      } else {
+        alert("First airdrop record failed! ");
+      }
+      show_login_area(false);
+      show_balance(principal);
+      create_icat(principal);
+    } else {
+      showLoading(false);
+      alert("Register falied, User has existed!");
+    }
+  });
   $("#coin").click(async function () {
     showLoading(true);
     var last_drop = await icat.getAirdropLastRecord(principal_);
     if (last_drop == null) {
       showLoading(false);
-      alert(" have no record !");     
-    } else {    
+      alert(" have no record !");
+    } else {
       var gap = getCurrentTimeStamp() - parseInt(last_drop);
       if (gap > 3600 * 1000 * 24) {
-        var firstReward =await icat.airDrop(principal, 200);
+        var firstReward = await icat.airDrop(principal, 200);
         if (firstReward) {
-          var recordReward =await icat.updateAirDropRecord(
+          var recordReward = await icat.updateAirDropRecord(
             principal_,
             getCurrentTimeStamp()
           );
@@ -231,44 +206,35 @@ $(function () {
     buyMusic();
   });
 
-  $("#edit-name").click(function(){
+  $("#edit-name").click(function () {
     show_Edit_pannel(true);
   });
 
-  $("#edit-name-confirm").click(function(){
+  $("#edit-name-confirm").click(function () {
     editName();
   });
 
-  $("#edit-name-cancel").click(function(){
+  $("#edit-name-cancel").click(function () {
     show_Edit_pannel(false);
   });
 
-  $("#test").click(function(){
-    $("main-area").html(iCatsInfoTempl(data)).show();
-  });
-
-
-
-
-
   // functions
 
-  function isEmpty(obj){
-    if(typeof obj == "undefined" || obj == null || obj == ""){
-        return true;
-    }else{
-        return false;
+  function isEmpty(obj) {
+    if (typeof obj == "undefined" || obj == null || obj == "") {
+      return true;
+    } else {
+      return false;
     }
-}
-
+  }
 
   function goCenter(element) {
     var h = $(window).height();
     var w = $(window).width();
     var st = $(window).scrollTop();
     var sl = $(window).scrollLeft();
-    element.css("top", (h) / 2 + st);
-    element.css("left", (w) / 2 + sl);
+    element.css("top", h / 2 + st);
+    element.css("left", w / 2 + sl);
   }
 
   function showLoading(is_shown) {
@@ -279,16 +245,6 @@ $(function () {
     }
   }
 
-  function showElement(element,isShow){
-    if (isShow) {
-      element.show();
-    } else {
-      element.hide();
-    }
-  }
-
-
-
   function setCatAreaBackground() {
     $("#cat-area-inner")
       .css("background-image", "url(cat-bg.png)")
@@ -298,8 +254,8 @@ $(function () {
 
   async function create_icat(principal_str) {
     const timestamp = Date.parse(new Date());
-    const gender =Math.round(Math.random()); 
-    var data = await icat.createNewCat(principal_, timestamp ,gender);
+    const gender = Math.round(Math.random());
+    var data = await icat.createNewCat(principal_, timestamp, gender);
     if (data == null) {
       alert("icat create fail!");
       showLoading(false);
@@ -416,7 +372,6 @@ $(function () {
         show_balance(principal);
         buyWaterAnim();
         is_cat_anim = false;
-       
       } else {
         is_cat_anim = false;
         showLoading(false);
@@ -426,7 +381,6 @@ $(function () {
       showLoading(false);
       alert("Your Shit Coin is not enough to buy this item.");
     }
-    
   }
 
   async function buyFood() {
@@ -457,7 +411,6 @@ $(function () {
       showLoading(false);
       alert("Your Shit Coin is not enough to buy this item.");
     }
-   
   }
 
   async function buyMusic() {
@@ -488,21 +441,20 @@ $(function () {
       showLoading(false);
       alert("Your Shit Coin is not enough to buy this item.");
     }
-    
   }
 
-  async function editName(){
-  var name = $("#input-name").val().toString();
-  if(isEmpty(name)){
-   alert("please input Icat name!");
-  }else{
-    showLoading(true);
-    data.name =name;
-    await icat.updateProfile(data);
-    load_cate_info(data);
-    show_Edit_pannel(false);
-    showLoading(false);
-  }
+  async function editName() {
+    var name = $("#input-name").val().toString();
+    if (isEmpty(name)) {
+      alert("please input Icat name!");
+    } else {
+      showLoading(true);
+      data.name = name;
+      await icat.updateProfile(data);
+      load_cate_info(data);
+      show_Edit_pannel(false);
+      showLoading(false);
+    }
   }
 
   async function get_icat(principal) {
@@ -560,22 +512,21 @@ $(function () {
     }
   }
 
-  function show_Edit_pannel(is_shown){
-    if(is_shown){
+  function show_Edit_pannel(is_shown) {
+    if (is_shown) {
       goCenter($("#edit-pannel"));
 
       $("#edit-pannel").show();
-     
-    }else{
+    } else {
       $("#edit-pannel").hide();
-    }   
+    }
   }
 
   function load_cate_info(data) {
     $("#cat-birth").text(timeStamp2Time(data.birthdate) + "");
-    if(isEmpty(data.name+"")){
+    if (isEmpty(data.name + "")) {
       $("#edit-name").show();
-    }else{
+    } else {
       $("#edit-name").hide();
     }
     $("#cat-name").text(data.name + "");
@@ -597,8 +548,6 @@ $(function () {
       "Hi, your Balance is: " + balance;
     document.getElementById("balance").innerText = "" + balance;
   }
-
-  
 
   function check_empty_log_in() {
     return principal == "";
@@ -632,7 +581,7 @@ $(function () {
 
   function log_out() {
     principal = "";
-    principal_ =null;
+    principal_ = null;
     document.getElementById("wallet_id").value = "";
     document.getElementById("password").value = "";
     document.getElementById("balance").value = "";
@@ -714,30 +663,4 @@ $(function () {
     const timestamp = Date.parse(new Date());
     return timestamp;
   }
-
-
-  function loadCatData(data){
-
-  }
-
-  function getArrayFromSrc(src, resolve){
-
-    var oReq = new XMLHttpRequest();
-    oReq.open("GET", src, true);
-     oReq.responseType = "arraybuffer";
-
-     oReq.onload  = function (oEvent) {
-       var arrayBuffer = oReq.response; // Note: not oReq.responseText
-        if (arrayBuffer) {
-    var byteArray = new Uint8Array(arrayBuffer);
-    resolve(byteArray);
-    for (var i = 0; i < byteArray.byteLength; i++) {
-      // do something with each byte in the array
-       }
-      }
-    };
-
-    oReq.send(null);
-  }
-
 });

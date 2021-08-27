@@ -62,11 +62,16 @@ export interface Token {
   'burn' : (arg_0: Principal, arg_1: bigint) => Promise<boolean>,
   'checkState' : () => Promise<Player>,
   'checkUserHasCat' : (arg_0: Principal) => Promise<boolean>,
-  'createCatInfo' : (arg_0: Principal, arg_1: bigint) => Promise<CatInfo>,
+  'createCatInfo' : (arg_0: Principal, arg_1: bigint, arg_2: bigint) => Promise<
+      CatInfo
+    >,
   'createNewCat' : (arg_0: UserId_2, arg_1: bigint, arg_2: bigint) => Promise<
       Profile
     >,
+  'createPlayer' : () => Promise<Player>,
+  'createPlayerFromFront' : (arg_0: Principal) => Promise<Player>,
   'decimals' : () => Promise<bigint>,
+  'findPlayer' : (arg_0: Principal) => Promise<[] | [Player]>,
   'getAirdropLastRecord' : (arg_0: Principal) => Promise<[] | [bigint]>,
   'getICatInfo' : (arg_0: UserId_2) => Promise<[] | [Profile]>,
   'getNft' : (arg_0: Principal) => Promise<[] | [Nft]>,
@@ -77,6 +82,11 @@ export interface Token {
   'logIn' : (arg_0: string, arg_1: string) => Promise<boolean>,
   'mint' : (arg_0: Principal, arg_1: bigint) => Promise<boolean>,
   'mintNft' : (arg_0: Array<number>, arg_1: CatInfo) => Promise<Result_2>,
+  'mintNftByFront' : (
+      arg_0: Array<number>,
+      arg_1: CatInfo,
+      arg_2: Principal,
+    ) => Promise<Result_2>,
   'modifyPassWord' : (arg_0: string, arg_1: string) => Promise<boolean>,
   'name' : () => Promise<string>,
   'owner' : () => Promise<Principal>,
@@ -94,6 +104,7 @@ export interface Token {
       arg_2: bigint,
     ) => Promise<boolean>,
   'updateAirDropRecord' : (arg_0: Principal, arg_1: bigint) => Promise<boolean>,
+  'updatePlayer' : (arg_0: Player) => Promise<undefined>,
   'updateProfile' : (arg_0: Profile) => Promise<boolean>,
 };
 export type UserId = Principal;
