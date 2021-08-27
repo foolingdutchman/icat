@@ -1,9 +1,11 @@
 {
- 
+  "__Candid_UI": {
+    "local": "r7inp-6aaaa-aaaaa-aaabq-cai"
+  },
   "icat": {
-    "ic": "gnsm3-raaaa-aaaah-aapoa-cai"
+    "local": "rrkah-fqaaa-aaaaa-aaaaq-cai"
   },
   "icat_assets": {
-    "ic": "gktkp-4yaaa-aaaah-aapoq-cai"
+    "local": "ryjl3-tyaaa-aaaaa-aaaba-cai"
   }
 }
