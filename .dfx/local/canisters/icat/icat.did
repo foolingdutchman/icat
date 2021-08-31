@@ -6,27 +6,56 @@ type Token =
    allowance: (principal, principal) -> (nat) query;
    approve: (principal, nat) -> (bool);
    balanceOf: (principal) -> (nat) query;
-   balanceOfFromtr: (text) -> (nat) query;
    burn: (principal, nat) -> (bool);
+   checkPlayerState: () -> (Player);
+   checkUserHasCat: (principal) -> (bool);
+   createCat: (nat, nat) -> (CatInfo);
+   createCatInfo: (principal, nat, nat) -> (CatInfo);
    createNewCat: (UserId_2, nat, nat) -> (Profile);
+   createPlayer: () -> (Player);
+   createPlayerFromFront: (principal) -> (Player);
    decimals: () -> (nat) query;
+   findPlayer: (principal) -> (opt Player);
    getAirdropLastRecord: (principal) -> (opt nat);
    getICatInfo: (UserId_2) -> (opt Profile);
+   getNft: (principal) -> (opt Nft) query;
+   getNftAddress: (nat) -> (opt principal) query;
+   getNftById: (nat) -> (Result_3) query;
    getPrincipal: (text) -> (principal);
    greet: (text) -> (text);
    logIn: (text, text) -> (bool);
    mint: (principal, nat) -> (bool);
+   mintNft: (vec nat8, CatInfo) -> (Result_2);
+   mintNftByFront: (vec nat8, CatInfo, principal) -> (Result_2);
    modifyPassWord: (text, text) -> (bool);
    name: () -> (text) query;
    owner: () -> (principal) query;
    recoverChip: (text, nat) -> (bool);
    registerUser: (text, text) -> (bool);
+   requestId: () -> (Result);
+   spawnCreator: () -> (text);
    symbol: () -> (text) query;
    totalSupply: () -> (nat) query;
    transfer: (principal, nat) -> (bool);
    transferFrom: (principal, principal, nat) -> (bool);
    updateAirDropRecord: (principal, nat) -> (bool);
+   updatePlayer: (Player) -> () oneway;
    updateProfile: (Profile) -> (bool);
+ };
+type Result_3 = 
+ variant {
+   err: text;
+   ok: Nft;
+ };
+type Result_2 = 
+ variant {
+   err: text;
+   ok: principal;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: nat;
  };
 type Profile_2 = 
  record {
@@ -48,4 +77,41 @@ type Profile_2 =
    water: nat;
  };
 type Profile = Profile_2;
+type Player_2 = 
+ record {
+   food: nat;
+   id: UserId;
+   music: nat;
+   water: nat;
+ };
+type Player = Player_2;
+type Nft_2 = 
+ service {
+   getData: () -> (Data) query;
+   getId: () -> (nat) query;
+   getOwner: () -> (principal) query;
+   transferOwner: (principal) -> ();
+ };
+type Nft = Nft_2;
+type Data = 
+ record {
+   data: vec nat8;
+   info: CatInfo_3;
+ };
+type CatInfo_3 = CatInfo_2;
+type CatInfo_2 = 
+ record {
+   birthdate: nat;
+   fighting: nat;
+   gender: nat;
+   happyness: nat;
+   hungry: nat;
+   last_drink: nat;
+   last_feed: nat;
+   last_play: nat;
+   name: text;
+   pregnancy: nat;
+   thirsty: nat;
+ };
+type CatInfo = CatInfo_2;
 service : (text, text, nat, nat, principal) -> Token

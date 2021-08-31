@@ -60,4 +60,8 @@ module {
   public func hasAccess(userId: UserId, profile: Profile): Bool {
     userId == profile.id or isAdmin(userId)
   };
+
+  
+
+
 };

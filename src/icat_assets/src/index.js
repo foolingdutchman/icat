@@ -11,15 +11,29 @@ import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "animate.css/animate.min.css";
 import { Alert } from "bootstrap";
+import {
+  drinkAnim,
+  eatAnim,
+  musicAnim,
+  jumpAnim,
+  buyFoodAnim,
+  buyMusicAnim,
+  buyWaterAnim,
+} from "./anim";
+import {
+  timeStamp2Time,
+  getCurrentTimeStamp,
+  isEmpty,
+  getRandom,
+} from "./utils";
+import { initAuthClient, createActor, identityLogIn } from "./canister";
 
-const agent = new HttpAgent();
-const icat = Actor.createActor(icat_idl, {
-  agent,
-  canisterId: icat_id,
-});
+var icat = null;
+var isDaultActor = true;
 var principal = "";
-var principal_ =null;
+var principal_ = null;
 var data = {};
+var player = {};
 
 var is_cat_anim = false;
 window.$ = window.jQuery = $;
@@ -54,7 +68,7 @@ $(function () {
     loop: true,
   });
 
-  new Typed("#intro",{
+  new Typed("#intro", {
     cursorChar: "|",
     strings: [
       "&nbsp;This is a tiny pet game,\n ",
@@ -72,7 +86,6 @@ $(function () {
     backSpeed: 25,
     backDelay: 3000,
     loop: true,
-
   });
 
   // set backgroun for the cat area
@@ -85,7 +98,7 @@ $(function () {
       alert("Please Log In!");
       return;
     } else {
-      show_balance(principal);
+      show_balance();
     }
   });
 
@@ -93,16 +106,23 @@ $(function () {
     log_out();
   });
 
+  $("#log-in-ii").click(async function () {
+    showLoading(true);
+    await identityLogIn(handActor, saveIndentityAndLogIn);
+  });
+
   $("#log-in").click(async function () {
+    initDefaultActor();
     var temp_id = $("#wallet_id").val().toString();
     var temp_password = $("#password").val().toString();
     showLoading(true);
     var success = await icat.logIn(temp_id, temp_password);
     if (success) {
       principal = temp_id;
+      principal_ = await icat.getPrincipal(principal);
       alert("Log In success!");
       show_login_area(false);
-      show_balance(principal);
+      show_balance();
       get_icat(principal);
     } else {
       showLoading(false);
@@ -111,6 +131,7 @@ $(function () {
   });
 
   $("#register").click(async function () {
+    initDefaultActor();
     var temp_id = $("#wallet_id").val().toString();
     var temp_password = $("#password").val().toString();
     showLoading(true);
@@ -119,9 +140,10 @@ $(function () {
       principal = temp_id;
       alert("Register and Log In success!");
       principal_ = await icat.getPrincipal(principal);
-      var firstReward =await icat.airDrop(principal, 200);
+      player = await icat.createPlayerFromFront(principal_);
+      var firstReward = await icat.airDrop(principal, 200);
       if (firstReward) {
-        var recordReward =await icat.updateAirDropRecord(
+        var recordReward = await icat.updateAirDropRecord(
           principal_,
           getCurrentTimeStamp()
         );
@@ -134,7 +156,7 @@ $(function () {
         alert("First airdrop record failed! ");
       }
       show_login_area(false);
-      show_balance(principal);
+      show_balance();
       create_icat(principal);
     } else {
       showLoading(false);
@@ -146,13 +168,13 @@ $(function () {
     var last_drop = await icat.getAirdropLastRecord(principal_);
     if (last_drop == null) {
       showLoading(false);
-      alert(" have no record !");     
-    } else {    
+      alert(" have no record !");
+    } else {
       var gap = getCurrentTimeStamp() - parseInt(last_drop);
       if (gap > 3600 * 1000 * 24) {
-        var firstReward =await icat.airDrop(principal, 200);
+        var firstReward = await icat.airDrop(principal, 200);
         if (firstReward) {
-          var recordReward =await icat.updateAirDropRecord(
+          var recordReward = await icat.updateAirDropRecord(
             principal_,
             getCurrentTimeStamp()
           );
@@ -207,38 +229,27 @@ $(function () {
     buyMusic();
   });
 
-  $("#edit-name").click(function(){
+  $("#edit-name").click(function () {
     show_Edit_pannel(true);
   });
 
-  $("#edit-name-confirm").click(function(){
+  $("#edit-name-confirm").click(function () {
     editName();
   });
 
-  $("#edit-name-cancel").click(function(){
+  $("#edit-name-cancel").click(function () {
     show_Edit_pannel(false);
   });
 
-
-
   // functions
-
-  function isEmpty(obj){
-    if(typeof obj == "undefined" || obj == null || obj == ""){
-        return true;
-    }else{
-        return false;
-    }
-}
-
 
   function goCenter(element) {
     var h = $(window).height();
     var w = $(window).width();
     var st = $(window).scrollTop();
     var sl = $(window).scrollLeft();
-    element.css("top", (h) / 2 + st);
-    element.css("left", (w) / 2 + sl);
+    element.css("top", h / 2 + st);
+    element.css("left", w / 2 + sl);
   }
 
   function showLoading(is_shown) {
@@ -256,16 +267,17 @@ $(function () {
       .css("background-size", "100% 100%");
   }
 
-  async function create_icat(principal_str) {
+  async function create_icat() {
     const timestamp = Date.parse(new Date());
-    const gender =Math.round(Math.random()); 
-    var data = await icat.createNewCat(principal_, timestamp ,gender);
-    if (data == null) {
+    const gender = Math.round(Math.random());
+    var catInfo = await icat.createCatInfo(principal_, timestamp, gender);
+    if (catInfo == null) {
       alert("icat create fail!");
       showLoading(false);
     } else {
       alert("icat create success!");
-      load_cate_info(data);
+      var nft = await getArrayFromSrc("demo-cat.svg", catInfo, createCatNft);
+      load_cate_info(catInfo);
       showLoading(false);
     }
   }
@@ -373,10 +385,9 @@ $(function () {
         await icat.updateProfile(data);
         showLoading(false);
         load_cate_info(data);
-        show_balance(principal);
+        show_balance();
         buyWaterAnim();
         is_cat_anim = false;
-       
       } else {
         is_cat_anim = false;
         showLoading(false);
@@ -386,7 +397,6 @@ $(function () {
       showLoading(false);
       alert("Your Shit Coin is not enough to buy this item.");
     }
-    
   }
 
   async function buyFood() {
@@ -405,7 +415,7 @@ $(function () {
         await icat.updateProfile(data);
         showLoading(false);
         load_cate_info(data);
-        show_balance(principal);
+        show_balance();
         buyFoodAnim();
         is_cat_anim = false;
       } else {
@@ -417,7 +427,6 @@ $(function () {
       showLoading(false);
       alert("Your Shit Coin is not enough to buy this item.");
     }
-   
   }
 
   async function buyMusic() {
@@ -436,7 +445,7 @@ $(function () {
         await icat.updateProfile(data);
         showLoading(false);
         load_cate_info(data);
-        show_balance(principal);
+        show_balance();
         buyMusicAnim();
         is_cat_anim = false;
       } else {
@@ -448,21 +457,20 @@ $(function () {
       showLoading(false);
       alert("Your Shit Coin is not enough to buy this item.");
     }
-    
   }
 
-  async function editName(){
-  var name = $("#input-name").val().toString();
-  if(isEmpty(name)){
-   alert("please input Icat name!");
-  }else{
-    showLoading(true);
-    data.name =name;
-    await icat.updateProfile(data);
-    load_cate_info(data);
-    show_Edit_pannel(false);
-    showLoading(false);
-  }
+  async function editName() {
+    var name = $("#input-name").val().toString();
+    if (isEmpty(name)) {
+      alert("please input Icat name!");
+    } else {
+      showLoading(true);
+      data.name = name;
+      await icat.updateProfile(data);
+      load_cate_info(data);
+      show_Edit_pannel(false);
+      showLoading(false);
+    }
   }
 
   async function get_icat(principal) {
@@ -520,22 +528,21 @@ $(function () {
     }
   }
 
-  function show_Edit_pannel(is_shown){
-    if(is_shown){
+  function show_Edit_pannel(is_shown) {
+    if (is_shown) {
       goCenter($("#edit-pannel"));
 
       $("#edit-pannel").show();
-     
-    }else{
+    } else {
       $("#edit-pannel").hide();
-    }   
+    }
   }
 
   function load_cate_info(data) {
     $("#cat-birth").text(timeStamp2Time(data.birthdate) + "");
-    if(isEmpty(data.name+"")){
+    if (isEmpty(data.name + "")) {
       $("#edit-name").show();
-    }else{
+    } else {
       $("#edit-name").hide();
     }
     $("#cat-name").text(data.name + "");
@@ -551,14 +558,12 @@ $(function () {
     $("#music-buy-num").text(data.music + "");
   }
 
-  async function show_balance(principal) {
-    const balance = await icat.balanceOfFromtr(principal);
+  async function show_balance() {
+    const balance = await icat.balanceOf(principal_);
     document.getElementById("greeting").innerText =
       "Hi, your Balance is: " + balance;
     document.getElementById("balance").innerText = "" + balance;
   }
-
-  
 
   function check_empty_log_in() {
     return principal == "";
@@ -590,88 +595,88 @@ $(function () {
     $("#la_wallet_id").text(is_shown ? "" : showPrincipal);
   }
 
+  function initDefaultActor() {
+    const agent = new HttpAgent();
+    icat = Actor.createActor(icat_idl, {
+      agent,
+      canisterId: icat_id,
+    });
+  }
+
   function log_out() {
     principal = "";
-    principal_ =null;
+    principal_ = null;
     document.getElementById("wallet_id").value = "";
     document.getElementById("password").value = "";
     document.getElementById("balance").value = "";
     show_login_area(true);
   }
 
-  function rotate(item) {
-    item.removeClass("rotate").addClass("rotate1");
-    setTimeout(function () {
-      item.removeClass("rotate1").addClass("rotate");
-    }, 500);
-  }
-
-  function timeStamp2Time(timestamp) {
-    var date = new Date(parseInt(timestamp) + 8 * 3600 * 1000); // 增加8小时
-    return date.toJSON().substr(0, 10).replace("T", " ");
-  }
-
-  function drinkAnim() {
-    $("#cat").attr("src", "cat-drink.gif");
-    setTimeout(function () {
-      $("#cat").attr("src", "cat-1.gif");
-    }, 4000);
-  }
-  function eatAnim() {
-    $("#cat").attr("src", "cat-eat.gif");
-    setTimeout(function () {
-      $("#cat").attr("src", "cat-1.gif");
-    }, 4000);
-  }
-
-  function musicAnim() {
-    $("#cat").attr("src", "cat-music.gif");
-    setTimeout(function () {
-      $("#cat").attr("src", "cat-1.gif");
-    }, 4000);
-  }
-
-  function jumpAnim() {
-    is_cat_anim = true;
-    $("#cat").attr("src", "cat-jump.gif");
-    setTimeout(function () {
-      $("#cat").attr("src", "cat-1.gif");
-      is_cat_anim = false;
-    }, 400);
-  }
-
-  function buyWaterAnim() {
-    $("#shop").attr("src", "shop-water.gif");
-    setTimeout(function () {
-      $("#shop").attr("src", "shop.png");
-    }, 3000);
-  }
-
-  function buyFoodAnim() {
-    $("#shop").attr("src", "shop-food.gif");
-    setTimeout(function () {
-      $("#shop").attr("src", "shop.png");
-    }, 3000);
-  }
-
-  function buyMusicAnim() {
-    $("#shop").attr("src", "shop-music.gif");
-    setTimeout(function () {
-      $("#shop").attr("src", "shop.png");
-    }, 3000);
-  }
-
   async function getBalance() {
     if (check_empty_log_in()) {
       return 0;
     } else {
-      const balance = await icat.balanceOfFromtr(principal);
+      const balance = await icat.balanceOf(principal_);
       return balance;
     }
   }
 
-  function getCurrentTimeStamp() {
-    const timestamp = Date.parse(new Date());
-    return timestamp;
+  async function getArrayFromSrc(src, catInfo, resolve) {
+    var oReq = new XMLHttpRequest();
+    oReq.open("GET", src, true);
+    oReq.responseType = "arraybuffer";
+
+    oReq.onload = function (oEvent) {
+      var arrayBuffer = oReq.response; // Note: not oReq.responseText
+      if (arrayBuffer) {
+        var byteArray = new Uint8Array(arrayBuffer);
+        resolve(catInfo, byteArray);
+      }
+    };
+    oReq.send(null);
+  }
+
+  async function createCatNft(catInfo, array) {
+    console.log(array);
+    console.log(catInfo);
+    console.log("start minted nft...");
+    var catNft = await icat.mintNftByFront(
+      Array.from(array),
+      catInfo,
+      principal_
+    );
+    console.log("minted nft...");
+    return catNft;
+  }
+
+  async function mintCatNft(catInfo, array) {
+    console.log(array);
+    console.log(catInfo);
+    console.log("start minted nft...");
+    var catNft = await icat.mintNft(Array.from(array), catInfo);
+    console.log("minted nft...");
+    return catNft;
+  }
+
+  async function saveIndentityAndLogIn(identity, handler) {
+    console.log(identity.getPrincipal().toText());
+    if (identity != null && !identity.getPrincipal().isAnonymous()) {
+      principal_ = identity.getPrincipal();
+      icat = await createActor(identity);
+      showLoading(false);
+      alert("Internet Identity auth success!");
+      handler(icat);
+    } else {
+      showLoading(false);
+      alert("Internet Identity auth failed!");
+    }
+  }
+
+  async function handActor(actor) {
+    show_login_area(false);
+    show_balance();
+    player = await actor.createPlayer();
+    data = await actor.createCat(getCurrentTimeStamp(), getRandom());
+    var nft = await getArrayFromSrc("demo-cat.svg", data, mintCatNft);
   }
 });
